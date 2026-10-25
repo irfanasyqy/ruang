@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Ruang (Hermes 3D Virtual Office) installer for macOS, Linux and WSL2.
 #
-#   curl -fsSL https://raw.githubusercontent.com/yugienugraha/ruang/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/irfanasyqy/ruang/main/install.sh | bash
 #
-# Installs the latest release into ~/.local/share/ruang and a `ruang` command into
+# Installs the latest release into ~/.local/share/asyqy-office and an `asyqy` command into
 # ~/.local/bin. Nothing is installed system-wide and sudo is never used. If no
-# suitable Node.js (20+) is found, a private copy is downloaded for Ruang only.
+# suitable Node.js (20+) is found, a private copy is downloaded for ASYQY ASYQY AI OFFICE only.
 # Run it again to update. Options (pass them after `bash -s --` when piping):
 #
 #   --service        also run it as a systemd user service (Linux)
@@ -19,14 +19,14 @@
 
 set -euo pipefail
 
-REPO="yugienugraha/ruang"
-PACKAGE="ruang"
-COMMAND="ruang"
+REPO="irfanasyqy/ruang"
+PACKAGE="asyqy-office"
+COMMAND="asyqy"
 NODE_MAJOR_MIN=20
 NODE_MAJOR_PRIVATE=22
-INSTALL_HOME="${RUANG_HOME:-$HOME/.local/share/ruang}"
+INSTALL_HOME="${RUANG_HOME:-$HOME/.local/share/aioffice}"
 BIN_DIR="${RUANG_BIN:-$HOME/.local/bin}"
-SERVICE_NAME="ruang"
+SERVICE_NAME="asyqy"
 SERVICE_FILE="$HOME/.config/systemd/user/$SERVICE_NAME.service"
 WORK=""
 export NPM_CONFIG_UPDATE_NOTIFIER=false NPM_CONFIG_FUND=false
@@ -38,9 +38,9 @@ fail() { printf '\033[31mx %s\033[0m\n' "$*" >&2; exit 1; }
 
 usage() {
   cat <<'HELP'
-Ruang · Hermes 3D Virtual Office installer (macOS, Linux, WSL2)
+ASYQY ASYQY AI OFFICE installer (macOS, Linux, WSL2)
 
-  curl -fsSL https://raw.githubusercontent.com/yugienugraha/ruang/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/irfanasyqy/ruang/main/install.sh | bash
   curl -fsSL .../install.sh | bash -s -- --service
 
 Options:
@@ -236,7 +236,7 @@ main() {
     shift
   done
 
-  bold "Installing Ruang · Hermes 3D Virtual Office"
+  bold "Installing ASYQY ASYQY AI OFFICE · ASYQY HEADQUARTERS"
   need curl
   need tar
   mkdir -p "$INSTALL_HOME"
@@ -261,10 +261,10 @@ main() {
 
   local installed
   installed="$("$BIN_DIR/$COMMAND" --version)"
-  bold "Ruang $installed installed."
+  bold "ASYQY ASYQY AI OFFICE $installed installed."
 
   if ! command -v hermes >/dev/null 2>&1; then
-    warn "The Hermes CLI (hermes) is not on your PATH. Ruang reads everything through it; install Hermes Agent first."
+    warn "The Hermes CLI (hermes) is not on your PATH. ASYQY ASYQY AI OFFICE reads everything through it; install Hermes Agent first."
   fi
   if [ "$service" = 1 ]; then
     install_service

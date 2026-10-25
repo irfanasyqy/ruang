@@ -7,8 +7,8 @@ import { AccessError, accessConfigDir, cookieValue, derive, Throttle } from './a
 // Profile lock: one 6-digit PIN guards the private data of the agents the owner picks (folder,
 // memory, tasks, cron job names, live activity, session titles, logs). Locked agents stay in the
 // office; their private data is withheld by the server until the PIN unlocks that one agent in
-// this browser for UNLOCK_MS. Only a scrypt hash of the PIN is stored, in Ruang's own config.
-// Forgotten PIN: `ruang profile-lock off`.
+// this browser for UNLOCK_MS. Only a scrypt hash of the PIN is stored, in ASYQY ASYQY AI OFFICE's own config.
+// Forgotten PIN: `asyqy profile-lock off`.
 
 export const PIN_LENGTH = 6
 export const UNLOCK_MS = 15 * 60 * 1000
@@ -218,7 +218,7 @@ export function installProfileLock(app: Express, store = new ProfileLockStore(),
   app.post('/api/profile-lock/unlock', route(async (request, response) => {
     const { agent, pin } = body(request)
     const state = await store.state()
-    if (!state.enabled || !state.file) throw new AccessError(state.enabled ? 'The profile lock file cannot be read. Run: ruang profile-lock off' : 'Profile lock is not set up.', 409)
+    if (!state.enabled || !state.file) throw new AccessError(state.enabled ? 'The profile lock file cannot be read. Run: asyqy profile-lock off' : 'Profile lock is not set up.', 409)
     if (typeof agent !== 'string' || !state.file.agents.includes(agent)) throw new AccessError('That agent is not locked.', 400)
     await checkPin(request, pin)
     const tokens = currentTokens(request, state.file)

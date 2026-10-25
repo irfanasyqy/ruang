@@ -1,16 +1,16 @@
 {
-  "name": "ruang",
+  "name": "asyqy-office",
   "version": "0.2.0",
-  "description": "Ruang: a 3D virtual office and read-only mission control for your Hermes Agent and OpenCode crew",
+  "description": "ASYQY AI OFFICE (ASYQY HEADQUARTERS) \u2014 3D virtual office and read-only mission control for the Hermes Agent crew",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yugienugraha/ruang.git"
+    "url": "git+https://github.com/irfanasyqy/ruang.git"
   },
-  "homepage": "https://github.com/yugienugraha/ruang#readme",
+  "homepage": "https://github.com/irfanasyqy/ruang#readme",
   "bin": {
-    "ruang": "bin/ruang.js"
+    "asyqy": "bin/asyqy.js"
   },
   "files": [
     "bin",
@@ -25,7 +25,7 @@
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build && tsc -p tsconfig.server.build.json",
-    "start": "node bin/ruang.js",
+    "start": "node bin/asyqy.js",
     "lint": "eslint .",
     "test": "vitest run"
   },
@@ -57,12 +57,14 @@
     "vitest": "^3.2.4"
   },
   "keywords": [
-    "hermes-agent",
     "opencode",
     "mission-control",
     "3d-office",
     "virtual-office",
     "dashboard",
-    "ai-agents"
+    "ai-agents",
+    "hermes-agent",
+    "aioffice",
+    "asyqy"
   ]
 }
