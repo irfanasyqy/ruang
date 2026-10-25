@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usePolling } from '../polling.ts'
 import type { ActivitySnapshot } from '../types.ts'
+import { t } from '../i18n.ts'
 import { EmptyState, PageTitle, SearchInput, SourceStatus, Unavailable } from '../ui.tsx'
 
 export function Activity() {
@@ -10,11 +11,11 @@ export function Activity() {
   const sessions = data?.sessions
   const needle = query.trim().toLowerCase()
   const visible = (sessions?.data ?? []).filter((session) => !needle || `${session.title} ${session.preview} ${session.workspace ?? ''} ${session.source ?? ''}`.toLowerCase().includes(needle))
-  return <><PageTitle eyebrow="HERMES SESSIONS" title="Activity">The 20 most recent Hermes sessions. Events and work history are not invented from session data.</PageTitle>
+  return <><PageTitle eyebrow="HERMES SESSIONS" title={t('Activity')}>{t('The 20 most recent Hermes sessions. Events and work history are not invented from session data.')}</PageTitle>
     <SourceStatus source={sessions} fetchedAt={data?.fetchedAt} request={snapshot}/><Unavailable source={sessions} request={snapshot}/>
-    {sessions?.availability === 'available' && (sessions.data.length === 0 ? <EmptyState title="No recent sessions">Hermes has no sessions yet. Start one with <code>hermes</code>.</EmptyState> : <>
-      <div className="toolbar"><SearchInput value={query} onChange={setQuery} label="Search sessions"/><span className="toolbar-count">{visible.length} of {sessions.data.length}</span></div>
-      <section className="data-list">{visible.map((session) => <article key={session.id ?? `${session.title}-${session.lastActive}`}><div><h2>{session.title}</h2>{session.preview && session.preview !== session.title && <p>{session.preview}</p>}</div><dl><div><dt>Last active</dt><dd>{session.lastActive}</dd></div>{session.workspace && <div><dt>Workspace</dt><dd>{session.workspace}</dd></div>}{session.source && <div><dt>Source</dt><dd>{session.source}</dd></div>}{session.id && <div><dt>Session ID</dt><dd>{session.id}</dd></div>}</dl></article>)}</section>
+    {sessions?.availability === 'available' && (sessions.data.length === 0 ? <EmptyState title={t('No recent sessions')}>{t('Hermes has no sessions yet. Start one with')} <code>hermes</code>.</EmptyState> : <>
+      <div className="toolbar"><SearchInput value={query} onChange={setQuery} label={t('Search sessions')}/><span className="toolbar-count">{visible.length} {t('of')} {sessions.data.length}</span></div>
+      <section className="data-list">{visible.map((session) => <article key={session.id ?? `${session.title}-${session.lastActive}`}><div><h2>{session.title}</h2>{session.preview && session.preview !== session.title && <p>{session.preview}</p>}</div><dl><div><dt>{t('Last active')}</dt><dd>{session.lastActive}</dd></div>{session.workspace && <div><dt>{t('Workspace')}</dt><dd>{session.workspace}</dd></div>}{session.source && <div><dt>{t('Source')}</dt><dd>{session.source}</dd></div>}{session.id && <div><dt>{t('Session ID')}</dt><dd>{session.id}</dd></div>}</dl></article>)}</section>
     </>)}
   </>
 }

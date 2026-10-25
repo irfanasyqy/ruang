@@ -12,10 +12,10 @@ export async function accessRequest(path: 'unlock' | 'lock' | 'code' | 'disable'
   try {
     const response = await request(`/api/access/${path}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-ruang-request': '1' }, body: JSON.stringify(body), credentials: 'same-origin' })
     const data = await response.json().catch(() => undefined) as (AccessStatus & { error?: string }) | undefined
-    if (!response.ok || !data) return { ok: false, message: data?.error ?? `The ASYQY ASYQY AI OFFICE server answered HTTP ${response.status}.` }
+    if (!response.ok || !data) return { ok: false, message: data?.error ?? `The ASYQY AI OFFICE server answered HTTP ${response.status}.` }
     return { ok: true, status: data }
   } catch {
-    return { ok: false, message: 'The ASYQY ASYQY AI OFFICE server could not be reached.' }
+    return { ok: false, message: 'The ASYQY AI OFFICE server could not be reached.' }
   }
 }
 
@@ -38,15 +38,15 @@ export function generateCode(random: (values: Uint32Array) => Uint32Array = (val
 
 export function codeFileText(code: string, origin: string, createdAt = new Date()): string {
   return [
-    'ASYQY ASYQY AI OFFICE access code',
+    'ASYQY AI OFFICE access code',
     '',
     `  ${code}`,
     '',
     `For: ${origin}`,
     `Created: ${createdAt.toISOString()}`,
     '',
-    'Keep this file somewhere safe. ASYQY ASYQY AI OFFICE has no password reset.',
-    'Lost the code? On the machine that runs ASYQY ASYQY AI OFFICE, run:',
+    'Keep this file somewhere safe. ASYQY AI OFFICE has no password reset.',
+    'Lost the code? On the machine that runs ASYQY AI OFFICE, run:',
     '  asyqy access-code off   (remove it, then set a new one in Settings)',
     '  asyqy access-code new   (print a new random code)',
     '',

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { t } from './i18n.ts'
 import { agentPrivacy, profileLockRequest, useProfileLock } from './profile-lock.ts'
 
 /** A 6-digit PIN field (digits only, hidden like a phone lock screen). */
@@ -19,26 +20,26 @@ export function ProfileUnlock({ agent, minutes = 15, compact = false }: { agent:
   const [error, setError] = useState<string>()
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (pin.length !== 6) { setError('Enter the 6-digit PIN.'); return }
+    if (pin.length !== 6) { setError(t('Enter the 6-digit PIN.')); return }
     setBusy(true)
     setError(undefined)
     const result = await profileLockRequest('unlock', { agent, pin })
     setBusy(false)
     if (!result.ok) { setError(result.message); setPin('') }
   }
-  return <form className={`profile-unlock${compact ? ' compact' : ''}`} onSubmit={submit} aria-label={`Unlock ${agent}`}>
+  return <form className={`profile-unlock${compact ? ' compact' : ''}`} onSubmit={submit} aria-label={`${t('Unlock')} ${agent}`}>
     <p className="profile-unlock-icon" aria-hidden="true">🔒</p>
-    <h3>{agent} is locked</h3>
-    <p className="muted">Its memory, files, tasks and activity are private. Enter the PIN to open them in this browser for {minutes} minutes.</p>
-    <PinInput id={`pin-${agent}`} value={pin} onChange={setPin} autoFocus label="PIN"/>
+    <h3>{agent} {t('is locked')}</h3>
+    <p className="muted">{t('Its memory, files, tasks and activity are private. Enter the PIN to open them in this browser for')} {minutes} {t('minutes.')}</p>
+    <PinInput id={`pin-${agent}`} value={pin} onChange={setPin} autoFocus label={t('PIN')}/>
     {error && <p className="form-error" role="alert">{error}</p>}
-    <button type="submit" className="primary-button" disabled={busy || pin.length !== 6}>{busy ? 'Checking…' : 'Unlock'}</button>
+    <button type="submit" className="primary-button" disabled={busy || pin.length !== 6}>{busy ? t('Checking…') : t('Unlock')}</button>
   </form>
 }
 
 /** Bar shown above an unlocked agent's private data, to lock it again. */
 export function RelockBar({ agent, minutes }: { agent: string; minutes: number }) {
-  return <div className="relock-bar"><span>🔓 {agent} is unlocked in this browser (up to {minutes} min).</span><button type="button" className="refresh-button" onClick={() => void profileLockRequest('lock', { agent })}>🔒 LOCK AGAIN</button></div>
+  return <div className="relock-bar"><span>🔓 {agent} {t('is unlocked in this browser (up to')} {minutes} {t('min).')}</span><button type="button" className="refresh-button" onClick={() => void profileLockRequest('lock', { agent })}>{t('🔒 LOCK AGAIN')}</button></div>
 }
 
 /**

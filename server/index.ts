@@ -120,8 +120,18 @@ if (existsSync(distDirectory)) {
 
 app.use((error: unknown, _request: Request, response: Response, _next: NextFunction) => {
   void _next
-  console.error('ASYQY ASYQY AI OFFICE request failed:', error instanceof Error ? error.message : error)
+  console.error('ASYQY AI OFFICE request failed:', error instanceof Error ? error.message : error)
   response.status(500).json({ error: 'Internal error' })
 })
 
-app.listen(PORT, HOST, () => console.log(`ASYQY ASYQY AI OFFICE listening on http://${HOST}:${PORT}${existsSync(distDirectory) ? ' (serving built UI)' : ' (API only; run the Vite dev server for the UI)'}`))
+app.listen(PORT, HOST, () => {
+  console.log(`ASYQY AI OFFICE listening on http://${HOST}:${PORT}${existsSync(distDirectory) ? ' (serving built UI)' : ' (API only; run the Vite dev server for the UI)'}`)
+  // Warm the slow sources once so the first page load does not pay for them.
+  // Warm the slow sources one at a time: firing them together saturates the CPU and
+  // every `hermes` call then races the timeout.
+  void (async () => {
+    for (const warm of [getSnapshot, getTaskBoard, getCalendar, getActivity, getKnowledge, getChannels]) {
+      try { await warm() } catch (error) { console.error('Warm-up read failed:', error instanceof Error ? error.message : error) }
+    }
+  })()
+})

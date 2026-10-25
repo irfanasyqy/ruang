@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { formatTime } from './format.ts'
+import { t } from './i18n.ts'
 import type { Polled } from './polling.ts'
 import type { GatewayState, Source } from './types.ts'
 
@@ -8,13 +9,13 @@ export function PageTitle({ eyebrow, title, children }: { eyebrow: string; title
 }
 
 export function RuntimeBadge({ source }: { source?: Source<GatewayState> }) {
-  const state = source?.availability === 'available' ? source.data : 'Not Available'
-  const tone = state === 'Running' ? 'good' : state === 'Stopped' ? 'bad' : state === 'Not Available' ? 'muted' : 'unknown'
+  const state = source?.availability === 'available' ? source.data : t('Not Available')
+  const tone = state === 'Running' ? 'good' : state === 'Stopped' ? 'bad' : state === t('Not Available') ? 'muted' : 'unknown'
   return <span className={`badge ${tone}`}>{state}</span>
 }
 
 export function LoadingState({ message }: { message: string }) {
-  return <section className="empty-state loading-state" aria-busy="true"><h2>Loading</h2><p>{message}</p></section>
+  return <section className="empty-state loading-state" aria-busy="true"><h2>{t('Loading')}</h2><p>{message}</p></section>
 }
 
 export function EmptyState({ title, children }: { title: string; children: ReactNode }) {
@@ -23,18 +24,18 @@ export function EmptyState({ title, children }: { title: string; children: React
 
 /** Source freshness plus a manual refresh control shared by every data page. */
 export function SourceStatus({ source, fetchedAt, request }: { source?: Source<unknown>; fetchedAt?: string; request: Polled<unknown> }) {
-  const status = request.status === 'pending' ? 'Connecting' : request.status === 'failed' || !source || source.availability === 'unavailable' ? 'Not Available' : request.status === 'ready' && request.stale ? 'Stale (refresh failed)' : 'Live source'
+  const status = request.status === 'pending' ? t('Connecting') : request.status === 'failed' || !source || source.availability === 'unavailable' ? t('Not Available') : request.status === 'ready' && request.stale ? t('Stale (refresh failed)') : t('Live source')
   const live = source?.availability === 'available' && !(request.status === 'ready' && request.stale)
   return <div className="source-status">
     <span className={live ? 'dot' : 'dot muted-dot'}/><span>{status}</span>
-    <span>{fetchedAt ? `REFRESHED ${formatTime(fetchedAt)}` : 'AWAITING REFRESH'}</span>
-    <button type="button" className="refresh-button" onClick={request.refresh} disabled={request.refreshing} aria-label="Refresh this source">{request.refreshing ? 'REFRESHING…' : '↻ REFRESH'}</button>
+    <span>{fetchedAt ? `${t('REFRESHED')} ${formatTime(fetchedAt)}` : t('AWAITING REFRESH')}</span>
+    <button type="button" className="refresh-button" onClick={request.refresh} disabled={request.refreshing} aria-label={t('Refresh this source')}>{request.refreshing ? t('REFRESHING…') : t('↻ REFRESH')}</button>
   </div>
 }
 
 export function Unavailable({ source, request }: { source?: Source<unknown>; request: Polled<unknown> }) {
-  if (request.status === 'failed') return <section className="empty-state" role="alert"><h2>Not Available</h2><p>{request.message ?? 'This read-only source could not be reached. Is the ASYQY ASYQY AI OFFICE API running?'}</p></section>
-  return source?.availability === 'unavailable' ? <section className="empty-state"><h2>Not Available</h2><p>{source.error?.message ?? 'This read-only source could not be read.'}</p></section> : null
+  if (request.status === 'failed') return <section className="empty-state" role="alert"><h2>{t('Not Available')}</h2><p>{request.message ?? t('This read-only source could not be reached. Is the ASYQY AI OFFICE API running?')}</p></section>
+  return source?.availability === 'unavailable' ? <section className="empty-state"><h2>{t('Not Available')}</h2><p>{source.error?.message ?? t('This read-only source could not be read.')}</p></section> : null
 }
 
 export function SearchInput({ value, onChange, label }: { value: string; onChange: (value: string) => void; label: string }) {
@@ -60,7 +61,7 @@ export function Dialog({ labelledBy, onClose, closeLabel, className = '', childr
   }
   return <div className="office-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <section className={`office-detail ${className}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={labelledBy} onKeyDown={onKeyDown}>
-      <button className="office-close" ref={closeRef} onClick={onClose} aria-label={closeLabel}>Close</button>
+      <button className="office-close" ref={closeRef} onClick={onClose} aria-label={closeLabel}>{t('Close')}</button>
       {children}
     </section>
   </div>

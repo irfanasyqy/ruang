@@ -11,6 +11,7 @@ import { Settings } from './pages/Settings.tsx'
 import { Usage } from './pages/Usage.tsx'
 import { TaskBoard } from './pages/TaskBoard.tsx'
 import { LOCKED_EVENT, loadAccess, type AccessStatus } from './access.ts'
+import { currentLang, t, toggleLang } from './i18n.ts'
 import { PROFILES_CHANGED } from './profile-lock.ts'
 import { LockScreen } from './LockScreen.tsx'
 import { API_VERSION } from './api-version.ts'
@@ -35,15 +36,15 @@ function Shell({ onRefresh, access, onAccessChange }: { onRefresh: () => void; a
   const health = usePolling<{ apiVersion?: number }>('/api/health', 60_000)
   const serverVersion = health.status === 'ready' ? health.data.apiVersion ?? 0 : health.status === 'failed' && health.httpStatus === 404 ? 0 : undefined
   const versionNotice = serverVersion === undefined || serverVersion === API_VERSION ? undefined
-    : serverVersion < API_VERSION ? 'The ASYQY ASYQY AI OFFICE server is running an older version than this page, so newer menus (such as Memory) cannot load. Restart the server: stop it, run npm run build, then npm start (npm run dev restarts by itself).'
-      : 'This page is older than the ASYQY ASYQY AI OFFICE server. Reload the page (and run npm run build if you use npm start).'
+    : serverVersion < API_VERSION ? t('The ASYQY AI OFFICE server is running an older version than this page, so newer menus (such as Memory) cannot load. Restart the server: stop it, run npm run build, then npm start (npm run dev restarts by itself).')
+      : t('This page is older than the ASYQY AI OFFICE server. Reload the page (and run npm run build if you use npm start).')
 
   useEffect(() => {
     const onHashChange = () => setPage(currentPage())
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
-  useEffect(() => { document.title = `${page} · ASYQY AI OFFICE` }, [page])
+  useEffect(() => { document.title = `${t(page)} · ASYQY AI OFFICE` }, [page])
   useEffect(() => {
     if (menuOpen) drawer.current?.querySelector<HTMLElement>('nav a[aria-current="page"], nav a')?.focus()
   }, [menuOpen])
@@ -72,21 +73,21 @@ function Shell({ onRefresh, access, onAccessChange }: { onRefresh: () => void; a
     setMenuOpen(false)
     window.scrollTo?.({ top: 0 })
   }
-  const syncLabel = data ? `SYNCED ${formatTime(data.fetchedAt)}${dashboard.status === 'ready' && dashboard.stale ? ' · STALE' : ''}` : dashboard.status === 'failed' ? 'API NOT AVAILABLE' : 'CONNECTING...'
+  const syncLabel = data ? `${t('SYNCED')} ${formatTime(data.fetchedAt)}${dashboard.status === 'ready' && dashboard.stale ? ` · ${t('STALE')}` : ''}` : dashboard.status === 'failed' ? t('API NOT AVAILABLE') : t('CONNECTING...')
 
   const alerts = (data && data.commands.failed > 0 ? 1 : 0)
   const content = page === 'Agents' ? <Agents runtime={data?.runtime ?? null} pending={dashboard.status === 'pending'}/> : page === 'Office' ? <Office dashboard={data} dashboardPending={dashboard.status === 'pending'} onNavigate={navigate}/> : page === 'Usage' ? <Usage/>: page === 'Task Board' ? <TaskBoard/> : page === 'Calendar' ? <Calendar/> : page === 'Activity' ? <Activity/> : page === 'Memory' ? <Memory onOpenFolders={() => navigate('Folders')}/> : page === 'Folders' ? <Folders/> : page === 'Settings' ? <Settings access={access} onAccessChange={onAccessChange}/> : <Logs/>
 
   return <div className={`app${page === 'Office' ? ' app-office' : ''}`}>
     {menuOpen && <div className="drawer-backdrop" onClick={closeMenu} aria-hidden="true"/>}
-    <aside id="app-sidebar" className="drawer" ref={drawer} hidden={!menuOpen} aria-label="Menu">
-      <div className="drawer-head"><a className="brand" href="#/office" onClick={(event) => { event.preventDefault(); navigate(HOME) }}>ASYQY<span>AI OFFICE</span></a><button type="button" className="icon-button" onClick={closeMenu} aria-label="Close menu" title="Close menu (Esc)">✕</button></div>
-      <nav aria-label="Main">{navigation.map((item) => <a href={`#/${pageSlug(item)}`} className={page === item ? 'active' : ''} aria-current={page === item ? 'page' : undefined} key={item} onClick={(event) => { event.preventDefault(); navigate(item) }}>{item}{item === 'Logs' && data && data.commands.failed > 0 && <span className="nav-badge" title="Failed CLI reads">{data.commands.failed}</span>}</a>)}</nav>
-      <div className="sidebar-note"><span className="dot"/> READ-ONLY MODE</div>
-      <small className="drawer-hint">Press M to open or close this menu</small>
+    <aside id="app-sidebar" className="drawer" ref={drawer} hidden={!menuOpen} aria-label={t('Main')}>
+      <div className="drawer-head"><a className="brand" href="#/office" onClick={(event) => { event.preventDefault(); navigate(HOME) }}>ASYQY<span>AI OFFICE</span></a><button type="button" className="icon-button" onClick={closeMenu} aria-label={t('Close menu')} title={t('Close menu (Esc)')}>✕</button></div>
+      <nav aria-label={t('Main')}>{navigation.map((item) => <a href={`#/${pageSlug(item)}`} className={page === item ? 'active' : ''} aria-current={page === item ? 'page' : undefined} key={item} onClick={(event) => { event.preventDefault(); navigate(item) }}>{t(item)}{item === 'Logs' && data && data.commands.failed > 0 && <span className="nav-badge" title={t('Failed CLI reads')}>{data.commands.failed}</span>}</a>)}</nav>
+      <div className="sidebar-note"><span className="dot"/> {t('READ-ONLY MODE')}</div>
+      <small className="drawer-hint">{t('Press M to open or close this menu')}</small>
     </aside>
-    <main><header><span className="header-title"><button type="button" ref={menuButton} className="icon-button menu-button" onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))} aria-controls="app-sidebar" aria-expanded={menuOpen} aria-label={menuOpen ? 'Close menu' : 'Open menu'} title="Menu (M)">☰{alerts > 0 && <span className="menu-alert" aria-label={`${alerts} alert${alerts === 1 ? '' : 's'} in the menu`}/>}</button><span>ASYQY HQ / {page.toUpperCase()}</span></span><span className="header-actions"><span className={`sync-label${dashboard.status === 'failed' ? ' text-bad' : ''}`}>{syncLabel}</span><button type="button" className="icon-button theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? '☀' : '☾'}</button><button type="button" className="refresh-button" onClick={onRefresh} aria-label="Refresh all sources">↻ REFRESH</button></span></header>
-      {versionNotice && <section className="notice version-notice" role="alert"><strong>Restart needed.</strong> {versionNotice}</section>}
+    <main><header><span className="header-title"><button type="button" ref={menuButton} className="icon-button menu-button" onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))} aria-controls="app-sidebar" aria-expanded={menuOpen} aria-label={menuOpen ? t('Close menu') : t('Open menu')} title={t('Menu (M)')}>☰{alerts > 0 && <span className="menu-alert" aria-label={`${alerts} ${t(alerts === 1 ? 'alert in the menu' : 'alerts in the menu')}`}/>}</button><span>ASYQY HQ / {t(page).toUpperCase()}</span></span><span className="header-actions"><span className={`sync-label${dashboard.status === 'failed' ? ' text-bad' : ''}`}>{syncLabel}</span><button type="button" className="icon-button lang-toggle" onClick={toggleLang} aria-label={t('Switch language')} title={t('Switch language')}>{currentLang().toUpperCase()}</button><button type="button" className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'dark' ? t('Switch to light mode') : t('Switch to dark mode')} title={theme === 'dark' ? t('Switch to light mode') : t('Switch to dark mode')}>{theme === 'dark' ? '☀' : '☾'}</button><button type="button" className="refresh-button" onClick={onRefresh} aria-label={t('Refresh all sources')}>{t('↻ REFRESH')}</button></span></header>
+      {versionNotice && <section className="notice version-notice" role="alert"><strong>{t('Restart needed.')}</strong> {versionNotice}</section>}
       {content}
     </main></div>
 }

@@ -6,7 +6,7 @@ import express, { type Express, type NextFunction, type Request, type Response }
 
 // Optional access code. Off by default; when it is set, every /api route except the health
 // check and the access routes themselves needs a session cookie, which the server hands out
-// after the code is entered. Only a scrypt hash of the code is stored, in ASYQY ASYQY AI OFFICE's own config
+// after the code is entered. Only a scrypt hash of the code is stored, in ASYQY AI OFFICE's own config
 // (never in Hermes), with a random secret that signs sessions: changing or removing the code
 // replaces the secret, which ends every session. Forgotten code: `asyqy access-code off`.
 
@@ -23,7 +23,7 @@ export class AccessError extends Error {
 }
 
 interface AccessFile { version: 1; salt: string; hash: string; secret: string; createdAt: string }
-/** `broken` means the file exists but cannot be read: ASYQY ASYQY AI OFFICE stays locked (fail closed). */
+/** `broken` means the file exists but cannot be read: ASYQY AI OFFICE stays locked (fail closed). */
 type AccessState = { enabled: false } | { enabled: true; file?: AccessFile; broken?: true }
 
 export function accessConfigDir(env: NodeJS.ProcessEnv = process.env): string {
@@ -193,7 +193,7 @@ export function installAccess(app: Express, store = new AccessStore(), throttle 
   const body = (request: Request) => (request.body && typeof request.body === 'object' ? request.body as Record<string, unknown> : {})
 
   // Changes must come from this page: a custom header cannot be sent cross-site without a CORS
-  // preflight, which ASYQY ASYQY AI OFFICE never answers, and the JSON parser ignores form posts.
+  // preflight, which ASYQY AI OFFICE never answers, and the JSON parser ignores form posts.
   app.use('/api/access', express.json({ limit: '4kb' }), (request: Request, response: Response, next: NextFunction) => {
     if (request.method === 'POST' && request.get('x-ruang-request') !== '1') { response.status(403).json({ error: 'Forbidden.' }); return }
     next()
@@ -217,7 +217,7 @@ export function installAccess(app: Express, store = new AccessStore(), throttle 
     const { code, currentCode, remember } = body(request)
     const next = normalizeCode(code)
     if ((await store.state()).enabled) {
-      if (!(await unlocked(request))) throw new AccessError('ASYQY ASYQY AI OFFICE is locked. Enter the access code.', 401)
+      if (!(await unlocked(request))) throw new AccessError('ASYQY AI OFFICE is locked. Enter the access code.', 401)
       await checkCode(request, currentCode)
     }
     const file = await store.set(next)
@@ -226,7 +226,7 @@ export function installAccess(app: Express, store = new AccessStore(), throttle 
   }))
   app.post('/api/access/disable', route(async (request, response) => {
     if (!(await store.state()).enabled) return status(request)
-    if (!(await unlocked(request))) throw new AccessError('ASYQY ASYQY AI OFFICE is locked. Enter the access code.', 401)
+    if (!(await unlocked(request))) throw new AccessError('ASYQY AI OFFICE is locked. Enter the access code.', 401)
     await checkCode(request, body(request).currentCode)
     await store.clear()
     setSession(request, response, undefined)
@@ -235,6 +235,6 @@ export function installAccess(app: Express, store = new AccessStore(), throttle 
   app.use('/api', async (request: Request, response: Response, next: NextFunction) => {
     if (request.path === '/health' || request.path === '/access' || request.path.startsWith('/access/')) { next(); return }
     if (await unlocked(request)) { next(); return }
-    response.status(401).json({ error: 'ASYQY ASYQY AI OFFICE is locked. Enter the access code.', locked: true })
+    response.status(401).json({ error: 'ASYQY AI OFFICE is locked. Enter the access code.', locked: true })
   })
 }

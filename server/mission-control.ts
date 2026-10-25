@@ -4,7 +4,23 @@ import { promisify } from 'node:util'
 const execFile = promisify(execFileCallback)
 const CACHE_MS = 10_000
 const INSIGHTS_CACHE_MS = 60_000
-const COMMAND_TIMEOUT_MS = 8_000
+const COMMAND_TIMEOUT_MS = 90_000
+// Every `hermes` call starts a Python process; running dozens at once on a small
+// box slows each one until they hit the timeout. Keep a small ceiling instead.
+const MAX_CONCURRENT_COMMANDS = 5
+let activeCommands = 0
+const commandQueue: (() => void)[] = []
+
+async function withCommandSlot<T>(task: () => Promise<T>): Promise<T> {
+  if (activeCommands >= MAX_CONCURRENT_COMMANDS) await new Promise<void>((resolve) => commandQueue.push(resolve))
+  activeCommands += 1
+  try {
+    return await task()
+  } finally {
+    activeCommands -= 1
+    commandQueue.shift()?.()
+  }
+}
 const COMMAND_LOG_LIMIT = 100
 const LOG_TAIL_LINES = 200
 
@@ -454,11 +470,11 @@ async function systemRun(file: string, args: string[], options: RunOptions = {})
   const started = Date.now()
   const command = [file, ...args].join(' ')
   try {
-    const { stdout } = await execFile(file, args, {
+    const { stdout } = await withCommandSlot(() => execFile(file, args, {
       timeout: COMMAND_TIMEOUT_MS,
       maxBuffer: 16 * 1024 * 1024,
       env: { ...process.env, NO_COLOR: '1', TERM: 'dumb', COLUMNS: '200', PYTHONIOENCODING: 'utf-8' },
-    })
+    }))
     recordCommand({ command, ok: true, durationMs: Date.now() - started, at: new Date(started).toISOString() })
     return stdout
   } catch (error) {
@@ -931,7 +947,7 @@ export function buildOfficeSnapshot(runtime: RuntimeSnapshot, board: TaskBoardSn
       ? live.probe.active ? `${live.probe.label ?? 'Active'}${live.probe.lastSeen ? ` (last log ${live.probe.lastSeen})` : ''}` : `No activity in the last ${ACTIVITY_WINDOW}`
       : activity.sessions.availability === 'unavailable' ? 'Not Available' : collaboration === 'Collaborating' ? 'Attributed active collaboration session' : 'No attributed recent activity'
     const runtimeProvenance = agent.profile ? `Gateway ${gateway ?? 'Unknown'} (hermes profile list)` : 'OpenCode version availability is not a state signal'
-    const managedIdle = state === 'Idle' ? '; ASYQY ASYQY AI OFFICE managed-idle placement policy (not agent-reported presence)' : ''
+    const managedIdle = state === 'Idle' ? '; ASYQY AI OFFICE managed-idle placement policy (not agent-reported presence)' : ''
     const liveProvenance = options.agentActivity ? `; live activity (${agent.profile ? `hermes -p ${agent.profile} logs/sessions` : 'agent logs mentioning OpenCode'}, last ${ACTIVITY_WINDOW}): ${!agentActivity || !live.known ? 'unavailable' : live.state !== 'Unknown' ? live.probe?.kind ?? 'active' : 'none'}` : ''
     return {
       id: agent.id,
@@ -993,12 +1009,14 @@ function cachedSource<T>(collect: () => Promise<T>, ttl = CACHE_MS) {
   return Object.assign(get, { clear: () => { entry = undefined } })
 }
 
-const runtimeSource = cachedSource(() => collectSnapshot())
-const taskBoardSource = cachedSource(() => collectTaskBoard())
-const calendarSource = cachedSource(() => collectCalendar())
-const activitySource = cachedSource(() => collectActivity())
-const knowledgeSource = cachedSource(() => collectKnowledge())
-const channelSource = cachedSource(() => collectChannels())
+// Profiles, gateway states, status --all and skills change rarely and are slow to read
+// (each `hermes` call costs seconds), so they are cached for two minutes.
+const runtimeSource = cachedSource(() => collectSnapshot(), 120_000)
+const taskBoardSource = cachedSource(() => collectTaskBoard(), 30_000)
+const calendarSource = cachedSource(() => collectCalendar(), 300_000)
+const activitySource = cachedSource(() => collectActivity(), 60_000)
+const knowledgeSource = cachedSource(() => collectKnowledge(), 120_000)
+const channelSource = cachedSource(() => collectChannels(), 300_000)
 const usageSources = new Map(USAGE_PERIODS.map((days) => [days, cachedSource(async () => collectUsage(days, (await getSnapshot()).profiles.data.map((profile) => profile.name)), INSIGHTS_CACHE_MS)]))
 
 /** Token usage of every agent over 1, 7 or 30 days (anything else reads as 7). */
@@ -1009,7 +1027,7 @@ const logsSource = cachedSource(() => collectLogs(), 5_000)
 const agentActivitySource = cachedSource(async () => {
   const runtime = await getSnapshot()
   return collectAgentActivity(runtime.profiles.availability === 'available' ? runtime.profiles.data.map((profile) => profile.name) : [])
-}, 15_000)
+}, 300_000)
 
 export function getSnapshot(now = Date.now()): Promise<RuntimeSnapshot> { return runtimeSource(now) }
 export function clearSnapshotCache(): void { runtimeSource.clear() }

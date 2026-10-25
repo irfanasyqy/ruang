@@ -7,7 +7,7 @@ import { AccessError, accessConfigDir, cookieValue, derive, Throttle } from './a
 // Profile lock: one 6-digit PIN guards the private data of the agents the owner picks (folder,
 // memory, tasks, cron job names, live activity, session titles, logs). Locked agents stay in the
 // office; their private data is withheld by the server until the PIN unlocks that one agent in
-// this browser for UNLOCK_MS. Only a scrypt hash of the PIN is stored, in ASYQY ASYQY AI OFFICE's own config.
+// this browser for UNLOCK_MS. Only a scrypt hash of the PIN is stored, in ASYQY AI OFFICE's own config.
 // Forgotten PIN: `asyqy profile-lock off`.
 
 export const PIN_LENGTH = 6
